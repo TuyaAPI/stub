@@ -1,0 +1,33 @@
+{
+  "name": "@tuyapi/stub",
+  "version": "0.1.0",
+  "description": "A stub device implementation for local testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "xo --quiet",
+    "document": "documentation build index.js -f html -o docs"
+  },
+  "keywords": [
+    "stub",
+    "testing",
+    "tuya",
+    "tuyapi",
+    "device"
+  ],
+  "author": "Max Isom <codetheweb@icloud.com> (https://maxisom.me)",
+  "license": "MIT",
+  "devDependencies": {
+    "documentation": "^9.1.1",
+    "xo": "^0.24.0"
+  },
+  "xo": {
+    "space": true,
+    "ignores": [
+      "docs"
+    ]
+  },
+  "dependencies": {
+    "debug": "^4.1.1",
+    "tuyapi": "^4.0.1"
+  }
+}
