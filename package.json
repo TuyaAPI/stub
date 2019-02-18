@@ -1,7 +1,7 @@
 {
   "name": "@tuyapi/stub",
   "version": "0.1.0",
-  "description": "A stub device implementation for local testing",
+  "description": "🧪 A stub device implementation for local testing.",
   "main": "index.js",
   "scripts": {
     "test": "xo --quiet",
@@ -14,6 +14,7 @@
     "tuyapi",
     "device"
   ],
+  "files": ["index.js"],
   "author": "Max Isom <codetheweb@icloud.com> (https://maxisom.me)",
   "license": "MIT",
   "devDependencies": {
@@ -29,5 +30,9 @@
   "dependencies": {
     "debug": "^4.1.1",
     "tuyapi": "^4.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TuyaAPI/stub.git"
   }
 }
