@@ -51,7 +51,7 @@ class TuyaStub {
       this.socket.destroy();
     }
 
-    if (this.server) {      
+    if (this.server) {
       this.server.close();
     }
 
