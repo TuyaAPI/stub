@@ -47,8 +47,13 @@ class TuyaStub {
    * Call to cleanly exit.
    */
   shutdown() {
-    this.socket.destroy();
-    this.server.close();
+    if (this.socket) {
+      this.socket.destroy();
+    }
+
+    if (this.server) {      
+      this.server.close();
+    }
 
     if (this.broadcastSocket) {
       this.broadcastSocket.close();
