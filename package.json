@@ -14,7 +14,9 @@
     "tuyapi",
     "device"
   ],
-  "files": ["index.js"],
+  "files": [
+    "index.js"
+  ],
   "author": "Max Isom <codetheweb@icloud.com> (https://maxisom.me)",
   "license": "MIT",
   "devDependencies": {

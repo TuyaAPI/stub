@@ -12,8 +12,6 @@ const debug = require('debug')('TuyaStub');
  * @param {String} options.id ID of mock device
  * @param {String} options.key key of mock device
  * @param {Object} options.state inital state of device
- * @param {Number} [options.broadcastInterval=5]
- * interval (in seconds) to broadcast UDP packets at
  * @example
  * const stub = new TuyaStub({ id: 'xxxxxxxxxxxxxxxxxxxx',
                                key: 'xxxxxxxxxxxxxxxx',
@@ -26,13 +24,7 @@ class TuyaStub {
     this.id = options.id;
     this.key = options.key;
 
-    if (!options.broadcastInterval) {
-      this._broadcastInterval = 5;
-    }
-
     this.cipher = new Cipher({key: this.key, version: 3.1});
-
-    this.startUDPBroadcast();
   }
 
   /**
@@ -42,13 +34,26 @@ class TuyaStub {
   startServer(port) {
     port = port ? port : 6668;
 
-    net.createServer(socket => {
+    this.server = net.createServer(socket => {
       this.socket = socket;
 
       socket.on('data', data => {
         this._handleRequest(data);
       });
     }).listen(port);
+  }
+
+  /**
+   * Call to cleanly exit.
+   */
+  shutdown() {
+    this.socket.destroy();
+    this.server.close();
+
+    if (this.broadcastSocket) {
+      this.broadcastSocket.close();
+      clearInterval(this.broadcastInterval);
+    }
   }
 
   /**
@@ -67,18 +72,18 @@ class TuyaStub {
     const message = MessageParser.encode({data: {devId: this.id, gwId: this.id, ip: 'localhost'}, commandByte: 10});
 
     // Create and bind socket
-    const socket = dgram.createSocket({type: 'udp4', reuseAddr: true});
+    this.broadcastSocket = dgram.createSocket({type: 'udp4', reuseAddr: true});
 
-    socket.bind(options.port);
+    this.broadcastSocket.bind(options.port);
 
     // When socket is ready, start broadcasting
-    socket.on('listening', () => {
-      socket.setBroadcast(true);
+    this.broadcastSocket.on('listening', () => {
+      this.broadcastSocket.setBroadcast(true);
 
       if (!this.broadcastInterval) {
         this.broadcastInterval = setInterval(() => {
           debug('Sending UDP broadcast...');
-          socket.send(message, 0, message.length, options.port, '255.255.255.255');
+          this.broadcastSocket.send(message, 0, message.length, options.port, '255.255.255.255');
         }, options.interval * 1000);
       }
     });
