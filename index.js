@@ -180,6 +180,22 @@ class TuyaStub {
    */
   setProperty(property, value) {
     this.state[property] = value;
+
+    if (this.server && this.socket) {
+      // Write response
+      const response = {
+        data: {
+          devId: this.id,
+          gwId: this.id,
+          dps: this.state
+        },
+
+        commandByte: 10
+      };
+
+      this.socket.write(MessageParser.encode(response));
+    }
+
     return this.state[property];
   }
 
