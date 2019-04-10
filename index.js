@@ -107,7 +107,7 @@ class TuyaStub {
     parsedPackets.forEach(packet => {
       if (packet.commandByte === 10) { // GET request
         // Check device ID
-        if (packet.data.devId !== this.id) {
+        if (packet.payload.devId !== this.id) {
           throw new Error('devId of request does not match');
         }
 
@@ -125,7 +125,7 @@ class TuyaStub {
         this.socket.write(this.parser.encode(response));
       } else if (packet.commandByte === 7) { // SET request
         // Decrypt data
-        const decryptedData = packet.data;
+        const decryptedData = packet.payload;
 
         debug('Decrypted data:');
         debug(decryptedData);
