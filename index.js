@@ -1,6 +1,6 @@
 const net = require('net');
 const dgram = require('dgram');
-const MessageParser = require('tuyapi/lib/message-parser');
+const {MessageParser, CommandType} = require('tuyapi/lib/message-parser');
 const debug = require('debug')('TuyaStub');
 
 /**
@@ -73,7 +73,7 @@ class TuyaStub {
     options.interval = options.interval ? options.interval : 5;
 
     // Encode broadcast
-    const message = this.parser.encode({data: {devId: this.id, gwId: this.id, ip: 'localhost'}, commandByte: 10});
+    const message = this.parser.encode({data: {devId: this.id, gwId: this.id, ip: 'localhost'}, commandByte: CommandType.DP_QUERY});
 
     // Create and bind socket
     this.broadcastSocket = dgram.createSocket({type: 'udp4', reuseAddr: true});
@@ -99,13 +99,16 @@ class TuyaStub {
    * @param {Buffer} data to handle
    */
   _handleRequest(data) {
+    debug('Incoming packet(s):');
+    debug(data.toString('hex'));
+
     const parsedPackets = this.parser.parse(data);
 
     debug('Parsed request:');
     debug(parsedPackets);
 
     parsedPackets.forEach(packet => {
-      if (packet.commandByte === 10) { // GET request
+      if (packet.commandByte === CommandType.DP_QUERY) { // GET request
         // Check device ID
         if (packet.payload.devId !== this.id) {
           throw new Error('devId of request does not match');
@@ -123,7 +126,7 @@ class TuyaStub {
 
         // Write response
         this.socket.write(this.parser.encode(response));
-      } else if (packet.commandByte === 7) { // SET request
+      } else if (packet.commandByte === CommandType.CONTROL) { // SET request
         // Decrypt data
         const decryptedData = packet.payload;
 
@@ -160,12 +163,12 @@ class TuyaStub {
         };
 
         this.socket.write(this.parser.encode(response));
-      } else if (packet.commandByte === 9) { // Heartbeat packet
+      } else if (packet.commandByte === CommandType.HEART_BEAT) { // Heartbeat packet
         // Send response pong
         debug('Sending pong...');
         const buffer = this.parser.encode({
           data: Buffer.allocUnsafe(0),
-          commandByte: 9, // 0x09
+          commandByte: CommandType.HEART_BEAT,
           sequenceN: packet.sequenceN
         });
 
@@ -192,7 +195,7 @@ class TuyaStub {
           dps: this.state
         },
 
-        commandByte: 10
+        commandByte: CommandType.CONTROL
       };
 
       this.socket.write(this.parser.encode(response));
