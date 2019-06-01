@@ -1,7 +1,6 @@
 const net = require('net');
 const dgram = require('dgram');
-const MessageParser = require('tuyapi/lib/message-parser');
-const Cipher = require('tuyapi/lib/cipher');
+const {MessageParser, CommandType} = require('tuyapi/lib/message-parser');
 const debug = require('debug')('TuyaStub');
 
 /**
@@ -24,7 +23,7 @@ class TuyaStub {
     this.id = options.id;
     this.key = options.key;
 
-    this.cipher = new Cipher({key: this.key, version: 3.1});
+    this.parser = new MessageParser({key: this.key, version: 3.1});
   }
 
   /**
@@ -74,7 +73,7 @@ class TuyaStub {
     options.interval = options.interval ? options.interval : 5;
 
     // Encode broadcast
-    const message = MessageParser.encode({data: {devId: this.id, gwId: this.id, ip: 'localhost'}, commandByte: 10});
+    const message = this.parser.encode({data: {devId: this.id, gwId: this.id, ip: 'localhost'}, commandByte: CommandType.DP_QUERY});
 
     // Create and bind socket
     this.broadcastSocket = dgram.createSocket({type: 'udp4', reuseAddr: true});
@@ -100,76 +99,89 @@ class TuyaStub {
    * @param {Buffer} data to handle
    */
   _handleRequest(data) {
-    const parsedData = MessageParser.parse(data);
+    debug('Incoming packet(s):');
+    debug(data.toString('hex'));
+
+    const parsedPackets = this.parser.parse(data);
 
     debug('Parsed request:');
-    debug(parsedData);
+    debug(parsedPackets);
 
-    if (parsedData.commandByte === 10) { // GET request
-      // Check device ID
-      if (parsedData.data.devId !== this.id) {
-        throw new Error('devId of request does not match');
+    parsedPackets.forEach(packet => {
+      if (packet.commandByte === CommandType.DP_QUERY) { // GET request
+        // Check device ID
+        if (packet.payload.devId !== this.id) {
+          throw new Error('devId of request does not match');
+        }
+
+        const response = {
+          data: {
+            devId: this.id,
+            gwId: this.id,
+            dps: this.state
+          },
+          commandByte: 10,
+          sequenceN: packet.sequenceN
+        };
+
+        // Write response
+        this.socket.write(this.parser.encode(response));
+      } else if (packet.commandByte === CommandType.CONTROL) { // SET request
+        // Decrypt data
+        const decryptedData = packet.payload;
+
+        debug('Decrypted data:');
+        debug(decryptedData);
+
+        // Check device ID
+        if (decryptedData.devId !== this.id) {
+          throw new Error('devId of request does not match');
+        }
+
+        // Check timestamp
+        const now = Math.floor(Date.now() / 1000); // Seconds since epoch
+
+        // Timestamp difference must be no more than 10 seconds
+        if (Math.abs(now - decryptedData.t) > 10) {
+          throw new Error('Bad timestamp.');
+        }
+
+        // Set properties
+        Object.keys(decryptedData.dps).forEach(property => {
+          this.setProperty(property, decryptedData.dps[property]);
+        });
+
+        // Responses for status updates have two parts
+        const confirmChangeResponse = {
+          data: {},
+          commandByte: 7,
+          sequenceN: packet.sequenceN
+        };
+
+        this.socket.write(this.parser.encode(confirmChangeResponse));
+
+        const statusUpdateResponse = {
+          data: {
+            devId: this.id,
+            gwId: this.id,
+            dps: this.state
+          },
+          commandByte: 8
+        };
+
+        this.socket.write(this.parser.encode(statusUpdateResponse));
+      } else if (packet.commandByte === CommandType.HEART_BEAT) { // Heartbeat packet
+        // Send response pong
+        debug('Sending pong...');
+        const buffer = this.parser.encode({
+          data: Buffer.allocUnsafe(0),
+          commandByte: CommandType.HEART_BEAT,
+          sequenceN: packet.sequenceN
+        });
+
+        this.socket.write(buffer);
       }
-
-      const response = {
-        data: {
-          devId: this.id,
-          gwId: this.id,
-          dps: this.state
-        },
-
-        commandByte: 10
-      };
-
-      // Write response
-      this.socket.write(MessageParser.encode(response));
-    } else if (parsedData.commandByte === 7) { // SET request
-      // Decrypt data
-      const decryptedData = this.cipher.decrypt(parsedData.data);
-
-      debug('Decrypted data:');
-      debug(decryptedData);
-
-      // Check device ID
-      if (decryptedData.devId !== this.id) {
-        throw new Error('devId of request does not match');
-      }
-
-      // Check timestamp
-      const now = Math.floor(Date.now() / 1000); // Seconds since epoch
-
-      // Timestamp difference must be no more than 10 seconds
-      if (Math.abs(now - decryptedData.t) > 10) {
-        throw new Error('Bad timestamp.');
-      }
-
-      // Set properties
-      Object.keys(decryptedData.dps).forEach(property => {
-        this.setProperty(property, decryptedData.dps[property]);
-      });
-
-      // Write response
-      const response = {
-        data: {
-          devId: this.id,
-          gwId: this.id,
-          dps: this.state
-        },
-
-        commandByte: 10
-      };
-
-      this.socket.write(MessageParser.encode(response));
-    } else if (parsedData.commandByte === 9) { // Heartbeat packet
-      // Send response pong
-      debug('Sending pong...');
-      const buffer = MessageParser.encode({
-        data: Buffer.allocUnsafe(0),
-        commandByte: 9 // 0x09
-      });
-
-      this.socket.write(buffer);
-    }
+    });
   }
 
   /**
@@ -190,10 +202,10 @@ class TuyaStub {
           dps: this.state
         },
 
-        commandByte: 10
+        commandByte: CommandType.CONTROL
       };
 
-      this.socket.write(MessageParser.encode(response));
+      this.socket.write(this.parser.encode(response));
     }
 
     return this.state[property];
