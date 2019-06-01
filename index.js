@@ -151,18 +151,25 @@ class TuyaStub {
           this.setProperty(property, decryptedData.dps[property]);
         });
 
-        // Write response
-        const response = {
+        // Responses for status updates have two parts
+        const confirmChangeResponse = {
+          data: {},
+          commandByte: 7,
+          sequenceN: packet.sequenceN
+        };
+
+        this.socket.write(this.parser.encode(confirmChangeResponse));
+
+        const statusUpdateResponse = {
           data: {
             devId: this.id,
             gwId: this.id,
             dps: this.state
           },
-
-          commandByte: 7
+          commandByte: 8
         };
 
-        this.socket.write(this.parser.encode(response));
+        this.socket.write(this.parser.encode(statusUpdateResponse));
       } else if (packet.commandByte === CommandType.HEART_BEAT) { // Heartbeat packet
         // Send response pong
         debug('Sending pong...');
