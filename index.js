@@ -10,7 +10,7 @@ const debug = require('debug')('TuyaStub');
  * @param {Object} options
  * @param {String} options.id ID of mock device
  * @param {String} options.key key of mock device
- * @param {String} options.ip IP address of mock device
+ * @param {String} [options.ip=localhost] IP address of mock device
  * @param {Object} options.state inital state of device
  * @example
  * const stub = new TuyaStub({ id: 'xxxxxxxxxxxxxxxxxxxx',
