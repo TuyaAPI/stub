@@ -10,6 +10,7 @@ const debug = require('debug')('TuyaStub');
  * @param {Object} options
  * @param {String} options.id ID of mock device
  * @param {String} options.key key of mock device
+ * @param {String} options.ip IP address of mock device
  * @param {Object} options.state inital state of device
  * @example
  * const stub = new TuyaStub({ id: 'xxxxxxxxxxxxxxxxxxxx',
@@ -22,6 +23,7 @@ class TuyaStub {
 
     this.id = options.id;
     this.key = options.key;
+    this.ip = options.ip ? options.ip : 'localhost';
 
     this.parser = new MessageParser({key: this.key, version: 3.1});
   }
@@ -73,7 +75,7 @@ class TuyaStub {
     options.interval = options.interval ? options.interval : 5;
 
     // Encode broadcast
-    const message = this.parser.encode({data: {devId: this.id, gwId: this.id, ip: 'localhost'}, commandByte: CommandType.DP_QUERY});
+    const message = this.parser.encode({data: {devId: this.id, gwId: this.id, ip: this.ip}, commandByte: CommandType.DP_QUERY});
 
     // Create and bind socket
     this.broadcastSocket = dgram.createSocket({type: 'udp4', reuseAddr: true});
