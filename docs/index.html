@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset='utf-8'>
+  <meta charset='utf-8' />
   <title>@tuyapi/stub 0.2.0 | Documentation</title>
   <meta name='description' content='🧪 A stub device implementation for local testing.'>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <link href='assets/bass.css' rel='stylesheet'>
-  <link href='assets/style.css' rel='stylesheet'>
-  <link href='assets/github.css' rel='stylesheet'>
-  <link href='assets/split.css' rel='stylesheet'>
+  <link href='assets/bass.css' rel='stylesheet' />
+  <link href='assets/style.css' rel='stylesheet' />
+  <link href='assets/github.css' rel='stylesheet' />
+  <link href='assets/split.css' rel='stylesheet' />
 </head>
 <body class='documentation m0'>
     <div class='flex'>
@@ -20,9 +20,6 @@
             placeholder='Filter'
             id='filter-input'
             class='col12 block input'
-            spellcheck='false'
-            autocapitalize='off'
-            autocorrect='off'
             type='text' />
           <div id='toc'>
             <ul class='list-reset h5 py1-ul'>
@@ -152,6 +149,17 @@ Tuya protocol for local testing.</p>
             <tbody class='mt1'>
               
                 <tr>
+  <td class='break-word'><span class='code bold'>options.state</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>
+  
+    (default <code>{}</code>)
+  </td>
+  <td class='break-word'><span>inital state of device
+</span></td>
+</tr>
+
+
+              
+                <tr>
   <td class='break-word'><span class='code bold'>options.id</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
   </td>
   <td class='break-word'><span>ID of mock device
@@ -181,9 +189,11 @@ Tuya protocol for local testing.</p>
 
               
                 <tr>
-  <td class='break-word'><span class='code bold'>options.state</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>
+  <td class='break-word'><span class='code bold'>options.respondToHeartbeat</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  
+    (default <code>true</code>)
   </td>
-  <td class='break-word'><span>inital state of device
+  <td class='break-word'><span>sends pong if true in response to pings
 </span></td>
 </tr>
 
@@ -195,8 +205,6 @@ Tuya protocol for local testing.</p>
         </div>
       
     </div>
-  
-
   
 
   
@@ -278,8 +286,6 @@ Tuya protocol for local testing.</p>
   
 
   
-
-  
 </section>
 
       </div>
@@ -308,8 +314,6 @@ Tuya protocol for local testing.</p>
   
   
   
-  
-
   
 
   
@@ -427,8 +431,6 @@ Tuya protocol for local testing.</p>
   
 
   
-
-  
 </section>
 
       </div>
@@ -494,8 +496,6 @@ Tuya protocol for local testing.</p>
 
       
     
-  
-
   
 
   
@@ -578,8 +578,6 @@ Tuya protocol for local testing.</p>
   
 
   
-
-  
 </section>
 
       </div>
@@ -622,8 +620,6 @@ Tuya protocol for local testing.</p>
 
       
     
-  
-
   
 
   
@@ -693,8 +689,6 @@ Tuya protocol for local testing.</p>
 
       
     
-  
-
   
 
   

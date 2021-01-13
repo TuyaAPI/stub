@@ -11,6 +11,7 @@ const debug = require('debug')('TuyaStub');
  * @param {String} options.id ID of mock device
  * @param {String} options.key key of mock device
  * @param {String} [options.ip=localhost] IP address of mock device
+ * @param {Boolean} [options.respondToHeartbeat=true] sends pong if true in response to pings
  * @param {Object} options.state inital state of device
  * @example
  * const stub = new TuyaStub({ id: 'xxxxxxxxxxxxxxxxxxxx',
@@ -18,14 +19,15 @@ const debug = require('debug')('TuyaStub');
                                state: {'1': false, '2': true}});
  */
 class TuyaStub {
-  constructor(options) {
-    this.state = options.state ? options.state : {};
+  constructor({state = {}, id, key, ip = 'localhost', respondToHeartbeat = true}) {
+    this.state = state;
 
-    this.id = options.id;
-    this.key = options.key;
-    this.ip = options.ip ? options.ip : 'localhost';
+    this.id = id;
+    this.key = key;
+    this.ip = ip;
+    this.respondToHeartbeat = respondToHeartbeat;
 
-    this.parser = new MessageParser({key: this.key, version: 3.1});
+    this.parser = new MessageParser({key, version: 3.1});
   }
 
   /**
@@ -172,7 +174,7 @@ class TuyaStub {
         };
 
         this.socket.write(this.parser.encode(statusUpdateResponse));
-      } else if (packet.commandByte === CommandType.HEART_BEAT) { // Heartbeat packet
+      } else if (packet.commandByte === CommandType.HEART_BEAT && this.respondToHeartbeat) { // Heartbeat packet
         // Send response pong
         debug('Sending pong...');
         const buffer = this.parser.encode({
